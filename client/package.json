@@ -1,0 +1,30 @@
+{
+  "name": "@gmail-leaderboard/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": ".electron/main.js",
+  "scripts": {
+    "dev": "concurrently -n renderer,electron:build,electron -c cyan,yellow,magenta \"vite\" \"tsc -p tsconfig.electron.json -w\" \"yarn dev:electron\"",
+    "dev:electron": "wait-on tcp:5173 .electron/main.js && electron .electron/main.js",
+    "build": "vite build && tsc -p tsconfig.electron.json",
+    "types": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "electron": "^37.2.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8",
+    "wait-on": "^8.0.5"
+  }
+}
