@@ -1,35 +1,31 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
+
+import { type AuthSession, beginGoogleAuth } from './utils/auth/google/beginGoogleAuth';
+import { createWindow } from './utils/window/createWindow';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function createWindow(): void {
-  const win = new BrowserWindow({
-    width: 1000,
-    height: 700,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  if (!app.isPackaged) {
-    void win.loadURL('http://localhost:5173');
-    win.webContents.openDevTools({ mode: 'detach' });
-  } else {
-    void win.loadFile(path.join(__dirname, '../dist/index.html'));
-  }
-}
+let authSession: AuthSession = { authenticated: false };
 
 app.whenReady().then(() => {
-  createWindow();
+  createWindow(__dirname);
+
+  ipcMain.handle('auth:begin-google', async () => {
+    authSession = await beginGoogleAuth();
+    return authSession;
+  });
+  ipcMain.handle('auth:session', () => authSession);
+  ipcMain.handle('auth:logout', () => {
+    authSession = { authenticated: false };
+    return authSession;
+  });
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) createWindow(__dirname);
   });
 });
 

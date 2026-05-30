@@ -3,12 +3,14 @@
   "packageManager": "yarn@4.9.4",
   "private": true,
   "workspaces": [
-    "client"
+    "client",
+    "worker"
   ],
   "scripts": {
     "dev": "yarn dev:client",
     "dev:client": "yarn workspace @gmail-leaderboard/client dev",
-    "build": "yarn workspace @gmail-leaderboard/client build",
+    "dev:worker": "yarn workspace @gmail-leaderboard/worker dev",
+    "build": "yarn workspaces foreach -Apt run build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "types": "yarn workspaces foreach -Apt run types"
