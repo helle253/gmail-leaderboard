@@ -32,11 +32,10 @@ export function App(): React.ReactElement {
       <section>
         <div className="flex flex-row justify-between">
           <h1 className="text-2xl">Gmail Stats</h1>
-
           <div>
             {authenticated ? (
               <button
-                className="rounded bg-slate-700 p-2 hover:bg-slate-600"
+                className="bg-slate-700 p-2 hover:bg-slate-600"
                 onClick={() => {
                   logout().finally(() => {
                     setAuthenticated(false);
