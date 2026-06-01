@@ -11,5 +11,6 @@ export type InboundEmailPayload = {
   text?: string;
   html?: string;
   listUnsubscribe?: string;
+  listUnsubscribePost?: string;
   unsubscribeLink?: string;
 };

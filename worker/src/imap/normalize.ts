@@ -38,5 +38,6 @@ export function normalizeImapMessage(input: { account: string; mailbox: string; 
     text: parsed.text ?? undefined,
     html: typeof parsed.html === 'string' ? parsed.html : undefined,
     listUnsubscribe: parsed.headers.get('list-unsubscribe') as string | undefined,
+    listUnsubscribePost: parsed.headers.get('list-unsubscribe-post') as string | undefined,
   };
 }
