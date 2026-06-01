@@ -2,8 +2,19 @@ import { insertInboundEmail } from '../db/repos/inboundEmailsRepo';
 import type { InboundEmailPayload } from '../types';
 import { findUnsubscribeLink } from '../utils/findUnsubscribeLink';
 
+function extractSenderEmail(sender: string): string {
+  const angleMatch = sender.match(/<([^<>\s]+@[^<>\s]+)>/);
+  if (angleMatch?.[1]) return angleMatch[1].trim().toLowerCase();
+
+  const plainMatch = sender.match(/\b[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+\b/);
+  if (plainMatch?.[0]) return plainMatch[0].trim().toLowerCase();
+
+  return sender;
+}
+
 export async function processInboundEmail(payload: InboundEmailPayload): Promise<void> {
-  const sender = payload.sender ?? payload.from ?? '(unknown sender)';
+  const rawSender = payload.sender ?? payload.from ?? '(unknown sender)';
+  const sender = extractSenderEmail(rawSender);
   const subject = payload.subject ?? '(no subject)';
   const unsubscribeLink = findUnsubscribeLink(payload);
 
