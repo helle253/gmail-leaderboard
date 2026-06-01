@@ -10,6 +10,7 @@ import { post as postGoogleSession } from './routes/auth/google/session';
 import { get as getAuthStatus } from './routes/auth/status';
 import { post as postEmail } from './routes/email/post';
 import { get as getHealth } from './routes/health/get';
+import { get as getLeaderboard } from './routes/leaderboard/get';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/api/auth/status', getAuthStatus);
 app.post('/api/auth/google/session', postGoogleSession);
 
 app.post('/email', postEmail);
+app.get('/api/leaderboard', getLeaderboard);
 
 runMigrations();
 
