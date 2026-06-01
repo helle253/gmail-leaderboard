@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "yarn build && yarn start",
+    "dev": "NODE_OPTIONS=--enable-source-maps tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "types": "tsc -p tsconfig.json --noEmit"
@@ -15,6 +15,7 @@
     "better-sqlite3": "^11.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
     "drizzle-orm": "^0.44.2",
     "express": "^4.21.2",
     "google-auth-library": "^10.3.0",
@@ -31,6 +32,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mailparser": "^3.4.6",
     "drizzle-kit": "^0.31.4",
+    "tsx": "^4.22.0",
     "typescript": "^6.0.3"
   }
 }

@@ -14,7 +14,9 @@ export type AuthSession = {
 
 export async function beginGoogleAuth(): Promise<AuthSession> {
   const clientId = process.env.GOOGLE_CLIENT_ID ?? '';
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
   if (!clientId) throw new Error('Missing GOOGLE_CLIENT_ID');
+  if (!clientSecret) throw new Error('Missing GOOGLE_CLIENT_SECRET');
 
   const server = http.createServer();
   let loopbackPort = 0;
@@ -46,15 +48,20 @@ export async function beginGoogleAuth(): Promise<AuthSession> {
       try {
         loopbackPort = (server.address() as AddressInfo).port;
         const redirectUri = `http://127.0.0.1:${loopbackPort}/oauth/callback`;
-        const oauth2Client = new google.auth.OAuth2({ clientId, redirectUri });
+        const oauth2Client = new google.auth.OAuth2({ clientId, clientSecret, redirectUri });
 
         const pkce = await oauth2Client.generateCodeVerifierAsync();
         codeVerifier = pkce.codeVerifier;
 
+        // NOTE: RE: https://mail.google.com/
+        // for testing/unpublished apps, you need to use a browser/account
+        // that is not currently authenticated. IDK why but the auth flow breaks
+        // if you are trying to use an account that is already authenticated in the browser.
+        const scopes = ['openid', 'email', 'https://mail.google.com/'];
         const authUrl = oauth2Client.generateAuthUrl({
           access_type: 'offline',
           include_granted_scopes: true,
-          scope: ['openid', 'email', 'profile', 'https://mail.google.com/'],
+          scope: scopes,
           code_challenge: pkce.codeChallenge,
           code_challenge_method: CodeChallengeMethod.S256,
           prompt: 'consent',
@@ -74,7 +81,7 @@ export async function beginGoogleAuth(): Promise<AuthSession> {
   if (!loopbackPort) throw new Error('Failed to resolve local callback port');
 
   const redirectUri = `http://127.0.0.1:${loopbackPort}/oauth/callback`;
-  const oauth2Client = new google.auth.OAuth2({ clientId, redirectUri });
+  const oauth2Client = new google.auth.OAuth2({ clientId, clientSecret, redirectUri });
 
   const { tokens } = await oauth2Client.getToken({
     code: authCode,
@@ -95,31 +102,31 @@ export async function beginGoogleAuth(): Promise<AuthSession> {
   const workerUrl = process.env.WORKER_URL ?? 'http://localhost:8787';
   const workerSetupSecret = process.env.WORKER_SETUP_SECRET ?? '';
 
-  if (workerSetupSecret) {
-    const response = await fetch(`${workerUrl}/api/auth/google/session`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-worker-setup-secret': workerSetupSecret,
-      },
-      body: JSON.stringify({
-        sub: profile.sub,
-        email: profile.email ?? undefined,
-        name: profile.name ?? undefined,
-        picture: profile.picture ?? undefined,
-        accessToken: tokens.access_token ?? undefined,
-        refreshToken: tokens.refresh_token ?? undefined,
-        scope: tokens.scope ?? undefined,
-        tokenType: tokens.token_type ?? undefined,
-        expiryDate: tokens.expiry_date ?? undefined,
-        idToken: tokens.id_token ?? undefined,
-      }),
-    });
+  if (!workerSetupSecret) throw new Error('Missing WORKER_SETUP_SECRET in client env');
 
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(`Worker rejected auth session: ${response.status} ${message}`);
-    }
+  const response = await fetch(`${workerUrl}/api/auth/google/session`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-worker-setup-secret': workerSetupSecret,
+    },
+    body: JSON.stringify({
+      sub: profile.sub,
+      email: profile.email ?? undefined,
+      name: profile.name ?? undefined,
+      picture: profile.picture ?? undefined,
+      accessToken: tokens.access_token ?? undefined,
+      refreshToken: tokens.refresh_token ?? undefined,
+      scope: tokens.scope ?? undefined,
+      tokenType: tokens.token_type ?? undefined,
+      expiryDate: tokens.expiry_date ?? undefined,
+      idToken: tokens.id_token ?? undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(`Worker rejected auth session: ${response.status} ${message}`);
   }
 
   return {

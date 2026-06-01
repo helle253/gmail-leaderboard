@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": ".electron/main.js",
+  "main": ".electron/main.cjs",
   "scripts": {
-    "dev": "concurrently -n renderer,electron:build,electron -c cyan,yellow,magenta \"vite\" \"tsc -p tsconfig.electron.json -w\" \"yarn dev:electron\"",
-    "dev:electron": "wait-on tcp:5173 .electron/main.js && electron .electron/main.js",
-    "build": "vite build && tsc -p tsconfig.electron.json",
+    "dev": "concurrently -n renderer,electron:build,electron -c cyan,yellow,magenta \"vite\" \"tsup --config tsup.electron.config.ts --watch\" \"yarn dev:electron\"",
+    "dev:electron": "wait-on tcp:5173 .electron/main.cjs && electron .electron/main.cjs",
+    "build": "vite build && tsup --config tsup.electron.config.ts",
     "types": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit"
   },
   "dependencies": {
+    "dotenv": "^16.6.1",
     "googleapis": "^150.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -24,6 +25,7 @@
     "concurrently": "^9.2.1",
     "electron": "^37.2.0",
     "tailwindcss": "^4.3.0",
+    "tsup": "^8.5.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.8",
     "wait-on": "^8.0.5"

@@ -13,17 +13,13 @@ type ImapConfig = {
   mailbox: string;
 };
 
-function readImapConfig(): ImapConfig {
+function readImapConfig(): Omit<ImapConfig, 'user'> {
   const host = process.env.IMAP_HOST;
-  const user = process.env.IMAP_USER;
 
-  if (!host) {
-    throw new Error('Missing IMAP config: IMAP_HOST is required');
-  }
+  if (!host) throw new Error('Missing IMAP config: IMAP_HOST is required');
 
   return {
     host,
-    user: user ?? '',
     port: Number(process.env.IMAP_PORT ?? 993),
     secure: process.env.IMAP_SECURE !== 'false',
     mailbox: process.env.IMAP_MAILBOX ?? 'INBOX',
@@ -55,17 +51,27 @@ async function ingestUnseen(client: ImapFlow, config: ImapConfig): Promise<void>
 }
 
 export async function startImapLoop(): Promise<void> {
-  const config = readImapConfig();
+  const baseConfig = readImapConfig();
 
   while (true) {
-    const googleAuth = await getValidGoogleAccessToken();
-    const imapUser = config.user || googleAuth.email;
+    let googleAuth: Awaited<ReturnType<typeof getValidGoogleAccessToken>>;
 
-    if (!imapUser) {
-      throw new Error('Missing IMAP user. Set IMAP_USER or ensure Google profile includes email.');
+    try {
+      googleAuth = await getValidGoogleAccessToken();
+    } catch (error) {
+      console.warn('[imap] waiting for Google auth session (sign in from client)...');
+      console.warn(error);
+      await sleep(5000);
+      continue;
     }
 
-    const client = new ImapFlow({
+    const imapUser = googleAuth.email;
+
+    if (!imapUser) throw new Error('Missing IMAP user. Set IMAP_USER or ensure Google profile includes email.');
+
+    const config = { ...baseConfig, user: imapUser };
+
+    const imapConfig = {
       host: config.host,
       port: config.port,
       secure: config.secure,
@@ -73,8 +79,9 @@ export async function startImapLoop(): Promise<void> {
         user: imapUser,
         accessToken: googleAuth.accessToken,
       },
-      logger: false,
-    });
+      logger: false as const,
+    };
+    const client = new ImapFlow(imapConfig);
 
     try {
       await client.connect();

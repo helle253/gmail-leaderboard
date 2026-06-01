@@ -7,7 +7,7 @@ export function createWindow(dirname: string): void {
     width: 1000,
     height: 700,
     webPreferences: {
-      preload: path.join(dirname, 'preload.js'),
+      preload: path.join(dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
