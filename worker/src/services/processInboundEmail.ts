@@ -13,7 +13,7 @@ function extractSenderEmail(sender: string): string {
 }
 
 export async function processInboundEmail(payload: InboundEmailPayload): Promise<void> {
-  const rawSender = payload.sender ?? payload.from ?? '(unknown sender)';
+  const rawSender = payload.from ?? '(unknown sender)';
   const sender = extractSenderEmail(rawSender);
   const subject = payload.subject ?? '(no subject)';
   const unsubscribeLink = findUnsubscribeLink(payload);

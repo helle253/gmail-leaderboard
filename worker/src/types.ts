@@ -5,7 +5,6 @@ export type InboundEmailPayload = {
   uid?: number | string;
   messageId?: string;
   from?: string;
-  sender?: string;
   subject?: string;
   date?: string;
   headers?: Record<string, string | string[] | undefined>;
@@ -14,4 +13,3 @@ export type InboundEmailPayload = {
   listUnsubscribe?: string;
   unsubscribeLink?: string;
 };
-
